@@ -1,6 +1,6 @@
 % Main script for model fitting the cooperation task data 
 dbstop if error
-SIM_PASSED_PARAMETERS = true; % this simfits the parameters passed in, instead of simfitting params fit to data
+SIM_PASSED_PARAMETERS = false; % this simfits the parameters passed in, instead of simfitting params fit to data
 SIMFIT = true;
 
 %%%% WILL HAVE TO CHANGE LOCAL SO THAT WE PROPERLY READ IN LEFTY BEHAVIORAL
@@ -18,24 +18,24 @@ if ispc
         fit_list = ["5590a34cfdf99b729d4f69dc"];
     end
     
-    simfit_alpha = 3.1454473;
-    simfit_cr = 6.9241437;
-    simfit_cl = 4.4656905;
-    simfit_eta = 0.4853053;
-    simfit_omega = 0.46222943;
-    simfit_p_a = 0.68625881;
+    simmed_alpha = 3.1454473;
+    simmed_cr = 6.9241437;
+    simmed_cl = 4.4656905;
+    simmed_eta = 0.4853053;
+    simmed_omega = 0.46222943;
+    simmed_p_a = 0.68625881;
    
 elseif isunix
     root = '/media/labs';
     fit_list = string(getenv('SUBJECT'))
     result_dir = getenv('RESULTS')
     experiment_mode = string(getenv('EXPERIMENT'))
-    simfit_alpha = str2double(getenv('ALPHA'))
-    simfit_cr = str2double(getenv('CR'))
-    simfit_cl = str2double(getenv('CL'))
-    simfit_eta = str2double(getenv('ETA'))
-    simfit_omega = str2double(getenv('OMEGA'))
-    simfit_p_a = str2double(getenv('P_A'))
+    simmed_alpha = str2double(getenv('ALPHA'))
+    simmed_cr = str2double(getenv('CR'))
+    simmed_cl = str2double(getenv('CL'))
+    simmed_eta = str2double(getenv('ETA'))
+    simmed_omega = str2double(getenv('OMEGA'))
+    simmed_p_a = str2double(getenv('P_A'))
 
     
     (fit_list)
@@ -55,33 +55,40 @@ for subject = fit_list
 
     % note that we always fit (even when simulating from parameters passed
     % in, because it sets up the mdp how we need it to run the simulation
-    
-    
-    config.forgetting_split = 0; % 1 = separate wins/losses, 0 = not
-    config.learning_split = 0; % 1 = separate wins/losses, 0 = not
-    config.T = 16; % trials per block
+    DCM.estimation_prior.opt = .5;
+    %estimation_prior.p_a = .25; %inverse information sensitivity (& lower bound on forgetting)
+    DCM.estimation_prior.cr = 1; %Reward Seeking preference
+    DCM.estimation_prior.cl = 1; %Loss aversion
+    DCM.estimation_prior.alpha = 4; %Action Precision
+    DCM.estimation_prior.eta = .5; %Learning rate
+    DCM.estimation_prior.omega = .5; %Forgetting rate
+    DCM.field = fieldnames(DCM.estimation_prior);
+    DCM.config.forgetting_split = 0; % 1 = separate wins/losses, 0 = not
+    DCM.config.learning_split = 0; % 1 = separate wins/losses, 0 = not
+    DCM.config.T = 16; % trials per block
 
     if experiment_mode == "local"
-        config.NB = 22;
-        fit_results = TAB_fit_simple_local(subject,config);
+        DCM.config.NB = 22;
+        fit_results = TAB_fit_simple_local(subject,DCM);
     elseif experiment_mode == "prolific"
-        config.NB = 30;
-        fit_results = TAB_fit_simple_prolific(subject,config);
+        DCM.config.NB = 30;
+        fit_results = TAB_fit_simple_prolific(subject,DCM);
     end
 
     
     if SIM_PASSED_PARAMETERS
         fprintf("FINALLY SIMULATING THE PARAMS. HAD TO FIT FIRST TO GET MDP SET UP\n");
-        fit_results.parameters.alpha = simfit_alpha;
-        fit_results.parameters.cr = simfit_cr;
-        fit_results.parameters.cl = simfit_cl;
-        fit_results.parameters.eta = simfit_eta;
-        fit_results.parameters.omega = simfit_omega;
-        fit_results.parameters.p_a = simfit_p_a;
+        fit_results.parameters.alpha = simmed_alpha;
+        fit_results.parameters.cr = simmed_cr;
+        fit_results.parameters.cl = simmed_cl;
+        fit_results.parameters.eta = simmed_eta;
+        fit_results.parameters.omega = simmed_omega;
+        fit_results.parameters.p_a = simmed_p_a;
         
         post_fields = fieldnames(fit_results.prior);
         post_values = struct2cell(fit_results.parameters);
         result_table = cell2table(post_values', 'VariableNames', strcat('simmed_', post_fields));
+        result_table.id = subject;
     
     else % fitting to data
         subject
@@ -107,9 +114,9 @@ for subject = fit_list
         sim_post_fields = fieldnames(simmed_results.prior);
         sim_post_values = struct2cell(simmed_results.parameters);
         sim_post_table = cell2table(sim_post_values', 'VariableNames', strcat('simfit_posterior_', sim_post_fields));
-        sim_addl_vals_table = table({subject}, simmed_results.avg_action_prob, simmed_results.model_acc,...
-            'VariableNames', {'id', 'simfit_avg_action_prob', 'simfit_model_acc'});
-        result_table = [sim_addl_vals_table, result_table, sim_post_table];
+        sim_addl_vals_table = table(simmed_results.avg_action_prob, simmed_results.model_acc,...
+            'VariableNames', {'simfit_avg_action_prob', 'simfit_model_acc'});
+        result_table = [result_table, sim_addl_vals_table,  sim_post_table];
         save([result_dir '/' char(subject) '_simfit_results.mat'], "simmed_results");
     end
     writetable(result_table, [result_dir '/coop_fit_' char(subject) '.csv']);

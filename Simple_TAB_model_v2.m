@@ -43,7 +43,7 @@
 % % choices = [1 2 3...]; % length T
 
 
-function [model_output] = Simple_TAB_model(params, rewards, choices, sim)
+function [model_output] = Simple_TAB_model_v2(params, rewards, choices, sim)
 
 
 a_0 = [params.opt params.opt params.opt;

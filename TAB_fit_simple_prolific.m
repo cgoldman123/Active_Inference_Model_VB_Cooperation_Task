@@ -1,4 +1,4 @@
-function fit_results = TAB_fit_simple_prolific(subject,config)
+function fit_results = TAB_fit_simple_prolific(subject,DCM)
     %% Add Subj Data (Parse the data files)
     if ispc
         root = 'L:/';
@@ -47,8 +47,8 @@ function fit_results = TAB_fit_simple_prolific(subject,config)
         %==========================================================================
         %==========================================================================
 
-        T = config.T; % trials per block
-        NB  = config.NB;     % number of blocks
+        T = DCM.config.T; % trials per block
+        NB  = DCM.config.NB;     % number of blocks
         N   = T*NB; % trials per block * number of blocks
 
 
@@ -87,28 +87,22 @@ function fit_results = TAB_fit_simple_prolific(subject,config)
         %force_outcome = load('force_outcome.mat').force_outcome;
         %location_code = load('location_code.mat').location_code;
 
-        params.force_choice = force_choice;
-        params.force_outcome = force_outcome;
-        params.BlockProbs = block_probs;
+        DCM.MDP.force_choice = force_choice;
+        DCM.MDP.force_outcome = force_outcome;
+        DCM.MDP.BlockProbs = block_probs;
             %--------------------------------------------------------------------------
         learning = 1; %fit eta?
         forgetting = 1; %fit omega?
 
-        params.T = T;
-        params.p_a = .25; %inverse information sensitivity (& lower bound on forgetting)
-        params.cr = 4; %Reward Seeking preference
-        params.cl = 1; %Loss aversion
-        params.alpha = 4; %Action Precision
-        params.eta = 1; %Learning rate
-        params.omega = 1; %Forgetting rate
+
 
         %if splitting forgetting rates
-        params.forgetting_split = config.forgetting_split; % 1 = separate wins/losses, 0 = not
+        DCM.MDP.forgetting_split = DCM.config.forgetting_split; % 1 = separate wins/losses, 0 = not
              %params.omega_win = 1;
              %params.omega_loss = 1;
 
         %if splitting learning rates
-         params.learning_split = config.learning_split; % 1 = separate wins/losses, 0 = not
+         DCM.MDP.learning_split = DCM.config.learning_split; % 1 = separate wins/losses, 0 = not
              %params.eta_win = 1;
              %params.eta_loss = 1;
 
@@ -188,40 +182,41 @@ function fit_results = TAB_fit_simple_prolific(subject,config)
         %--------------------------------------------------------------------------
 
       %  params.BlockProbs = BlockProbs;
-        params.NB = NB;
+        DCM.MDP.NB = NB;
+        DCM.MDP.T = T;
 
 
-        DCM.MDP    = params;                  % MDP model
-
-        if forgetting==1 & learning==1
-                if params.forgetting_split==1 & params.learning_split==1
-                DCM.field  = {'alpha' 'cr' 'eta_win' 'eta_loss','omega_win' 'omega_loss', 'p_a'}; % Parameter field
-
-                elseif params.forgetting_split==1 & params.learning_split==0
-                DCM.field  = {'alpha' 'cr' 'eta','omega_win' 'omega_loss', 'p_a'}; % Parameter field
-
-                elseif params.forgetting_split==0 & params.learning_split==1
-                DCM.field  = {'alpha' 'cr' 'eta_win' 'eta_loss','omega', 'p_a'}; % Parameter field
-
-                else
-
-                DCM.field  = {'alpha' 'cr' 'cl' 'eta' 'omega' 'p_a'}; % Parameter field
-                end
-        elseif forgetting==0 & learning==1
-                if params.learning_split==1
-                DCM.field  = {'alpha' 'cr' 'eta_win' 'eta_loss', 'p_a'}; % Parameter field
-
-                else 
-                DCM.field  = {'alpha' 'cr' 'eta','p_a'}; % Parameter field
-                end
-        elseif forgetting==1 & learning==0
-                if params.forgetting_split==1
-                DCM.field  = {'alpha' 'cr' 'omega_win' 'omega_loss', 'p_a'}; % Parameter field
-
-                else 
-                DCM.field  = {'alpha' 'cr' 'omega','p_a'}; % Parameter field
-                end
-        end
+        
+%         DCM.field = config.field;
+%         if forgetting==1 & learning==1
+%                 if params.forgetting_split==1 & params.learning_split==1
+%                 DCM.field  = {'alpha' 'cr' 'eta_win' 'eta_loss','omega_win' 'omega_loss', 'p_a'}; % Parameter field
+% 
+%                 elseif params.forgetting_split==1 & params.learning_split==0
+%                 DCM.field  = {'alpha' 'cr' 'eta','omega_win' 'omega_loss', 'p_a'}; % Parameter field
+% 
+%                 elseif params.forgetting_split==0 & params.learning_split==1
+%                 DCM.field  = {'alpha' 'cr' 'eta_win' 'eta_loss','omega', 'p_a'}; % Parameter field
+% 
+%                 else
+% 
+%                 DCM.field  = {'alpha' 'cr' 'cl' 'eta' 'omega' 'p_a'}; % Parameter field
+%                 end
+%         elseif forgetting==0 & learning==1
+%                 if params.learning_split==1
+%                 DCM.field  = {'alpha' 'cr' 'eta_win' 'eta_loss', 'p_a'}; % Parameter field
+% 
+%                 else 
+%                 DCM.field  = {'alpha' 'cr' 'eta','p_a'}; % Parameter field
+%                 end
+%         elseif forgetting==1 & learning==0
+%                 if params.forgetting_split==1
+%                 DCM.field  = {'alpha' 'cr' 'omega_win' 'omega_loss', 'p_a'}; % Parameter field
+% 
+%                 else 
+%                 DCM.field  = {'alpha' 'cr' 'omega','p_a'}; % Parameter field
+%                 end
+%         end
 
 
         DCM.U      = {o_all};              % trial specification (stimuli)
@@ -237,39 +232,15 @@ function fit_results = TAB_fit_simple_prolific(subject,config)
         %--------------------------------------------------------------------------
         field = fieldnames(DCM.M.pE);
         for i = 1:length(field)
-            if strcmp(field{i},'eta_neu')
-                prior.eta_neu = 1/(1+exp(-DCM.M.pE.(field{i})));
-                mdp.eta_neu = 1/(1+exp(-DCM.Ep.(field{i}))); 
-            elseif strcmp(field{i},'eta_win')
-                prior.eta_win = 1/(1+exp(-DCM.M.pE.(field{i})));
-                mdp.eta_win = 1/(1+exp(-DCM.Ep.(field{i})));  
-            elseif strcmp(field{i},'eta_loss')
-                prior.eta_loss = 1/(1+exp(-DCM.M.pE.(field{i})));
-                mdp.eta_loss = 1/(1+exp(-DCM.Ep.(field{i}))); 
-            elseif strcmp(field{i},'eta')
-                prior.eta = 1/(1+exp(-DCM.M.pE.(field{i})));
-                mdp.eta = 1/(1+exp(-DCM.Ep.(field{i}))); 
-            elseif strcmp(field{i},'omega') 
-                prior.omega = 1/(1+exp(-DCM.M.pE.(field{i})));
-                mdp.omega = 1/(1+exp(-DCM.Ep.(field{i}))); 
-            elseif strcmp(field{i},'omega_win')
-                prior.omega_win = 1/(1+exp(-DCM.M.pE.(field{i})));
-                mdp.omega_win = 1/(1+exp(-DCM.Ep.(field{i}))); 
-            elseif strcmp(field{i},'omega_loss')
-                prior.omega_loss = 1/(1+exp(-DCM.M.pE.(field{i})));
-                mdp.omega_loss = 1/(1+exp(-DCM.Ep.(field{i}))); 
-            elseif strcmp(field{i},'alpha')
-                prior.alpha = exp(DCM.M.pE.(field{i}));
-                mdp.alpha = exp(DCM.Ep.(field{i}));
-            elseif strcmp(field{i},'cr')
-                prior.cr = exp(DCM.M.pE.(field{i}));
-                mdp.cr = exp(DCM.Ep.(field{i}));
-            elseif strcmp(field{i},'cl')
-                prior.cl = exp(DCM.M.pE.(field{i}));
-                mdp.cl = exp(DCM.Ep.(field{i}));
-            elseif strcmp(field{i},'p_a')
-                prior.p_a = exp(DCM.M.pE.(field{i}));
-                mdp.p_a = exp(DCM.Ep.(field{i}));
+            if ismember(field{i},{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
+                prior.(field{i}) = exp(DCM.M.pE.(field{i}));
+                mdp.(field{i}) = exp(DCM.Ep.(field{i}));
+            elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neu', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
+                prior.(field{i}) = 1/(1+exp(-DCM.M.pE.(field{i})));
+                mdp.(field{i}) = 1/(1+exp(-DCM.Ep.(field{i})));  
+            else
+                prior.(field{i}) = (DCM.M.pE.(field{i}));
+                mdp.(field{i}) = (DCM.Ep.(field{i}));
             end
         end
 
@@ -277,14 +248,15 @@ function fit_results = TAB_fit_simple_prolific(subject,config)
         all_MDPs = [];
 
         U_Block = DCM.U{:}-1;
-        rewards = reshape(U_Block,params.T,params.NB)';
+        rewards = reshape(U_Block,T, NB)';
 
         Y_Block = DCM.Y{:}-1;
-        choices = reshape(Y_Block,params.T,params.NB)';
+        choices = reshape(Y_Block,T,NB)';
 
-        mdp.T = params.T;
-        mdp.learning_split = params.learning_split; % 1 = separate wins/losses, 0 = not
-        mdp.forgetting_split = params.forgetting_split; % 1 = separate wins/losses, 0 = not
+        mdp.T = T;
+        mdp.learning_split = DCM.config.learning_split; % 1 = separate wins/losses, 0 = not
+        mdp.forgetting_split = DCM.config.forgetting_split; % 1 = separate wins/losses, 0 = not
+
 
         %     %if splitting learning rates
         %          params.omega_win = 1;
@@ -295,15 +267,17 @@ function fit_results = TAB_fit_simple_prolific(subject,config)
         %          params.eta_loss = .5;
         %         
         % %Simulate beliefs using fitted values
-        for block=1:params.NB
+        for block=1:NB
            % mdp.force_choice = params.force_choice(block,:);
            % mdp.force_outcome = params.force_outcome(block,:);
             mdp.BlockProbs = block_probs(:,:,block);
-            MDP_Block{block} = Simple_TAB_model(mdp, rewards(block,:), choices(block,:), 0);
+            mdp.force_choice = DCM.MDP.force_choice(block,:);
+            mdp.force_outcome = DCM.MDP.force_outcome(block,:);
+            MDP_Block{block} = Simple_TAB_model_v2(mdp, rewards(block,:), choices(block,:), 0);
             % get avg action prob for free choices
             avg_act_probs(block) = sum(MDP_Block{block}.chosen_action_probabilities(4:end))/(mdp.T-3);
 
-            for trial = 4:params.T
+            for trial = 4:T
                 if MDP_Block{block}.chosen_action_probabilities(trial) == max(MDP_Block{block}.action_probabilities(:,trial))
                     acc(block,trial-3) = 1;
                 else
@@ -313,16 +287,16 @@ function fit_results = TAB_fit_simple_prolific(subject,config)
         end
 
         
-        avg_action_prob = sum(avg_act_probs)/params.NB;
-        model_acc = (sum(sum(acc,2))/(params.NB*(params.T-3)));
-        
-        fieldsToRemove = {'T', 'forgetting_split', 'learning_split','BlockProbs'};
-        % Remove the specified fields from the struct mdp
-        mdp = rmfield(mdp, fieldsToRemove);
+        avg_action_prob = sum(avg_act_probs)/NB;
+        model_acc = (sum(sum(acc,2))/(NB*(T-3)));
+
+        for i=1:length(field)
+            posterior_params.(field{i}) = mdp.(field{i});
+        end
 
         fit_results.file = {file};
         fit_results.prior = prior;
-        fit_results.parameters = mdp;
+        fit_results.parameters = posterior_params;
         fit_results.param_names = DCM.field;
         fit_results.DCM = DCM;
         fit_results.MDP_block = MDP_Block;

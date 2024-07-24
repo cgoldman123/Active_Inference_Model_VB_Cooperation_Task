@@ -224,7 +224,7 @@ end
 for block=1:params.NB
     mdp.force_choice = params.force_choice(block,:);
     mdp.force_outcome = params.force_outcome(block,:);
-    MDP_Block{block} = Simple_TAB_model(mdp, rewards(block,:), choices(block,:), 0);
+    MDP_Block{block} = Simple_TAB_model_v2(mdp, rewards(block,:), choices(block,:), 0);
     avg_act_prob(block) = sum(MDP_Block{block}.chosen_action_probabilities)/mdp.T;
     
     for trial = 1:params.T

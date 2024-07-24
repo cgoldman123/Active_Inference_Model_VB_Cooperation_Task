@@ -65,47 +65,14 @@ for i = 1:length(DCM.field)
         pE.(field) = zeros(size(param));
         pC{i,i}    = diag(param);
     else
-        if strcmp(field,'alpha')
-            pE.(field) = log(4);               % in log-space (to keep positive)
+        if ismember(field,{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
+            pE.(field) = log(DCM.estimation_prior.(field));  % in log-space (to keep positive)
             pC{i,i}    = prior_variance;
-        elseif strcmp(field,'beta')
-            pE.(field) = log(1);                % in log-space (to keep positive)
+        elseif ismember(field,{'eta_win', 'eta_loss', 'eta_neu', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
+            pE.(field) = log(DCM.estimation_prior.(field)/(1-DCM.estimation_prior.(field)));      % in logit-space - bounded between 0 and 1!
             pC{i,i}    = prior_variance;
-        elseif strcmp(field,'cs')
-            pE.(field) = log(1);              % in log-space (to keep positive)
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'p_a')
-            pE.(field) = log(1/4);              % in log-space (to keep positive)
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'cr')
-            pE.(field) = log(4);              % in log-space (to keep positive)
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'cl')
-            pE.(field) = log(4);              % in log-space (to keep positive)
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'eta_win')
-            pE.(field) = log(0.5/(1-0.5));      % in logit-space - bounded between 0 and 1!
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'eta_loss')
-            pE.(field) = log(0.5/(1-0.5));      % in logit-space - bounded between 0 and 1!
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'eta_neu')
-            pE.(field) = log(0.5/(1-0.5));      % in logit-space - bounded between 0 and 1!
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'eta')
-            pE.(field) = log(0.5/(1-0.5));      % in logit-space - bounded between 0 and 1!
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'omega') % omega = (1-omega) = (1-0.75)
-            pE.(field) = log(0.25/(1-0.25));      % in logit-space - bounded between 0 and 1!
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'omega_win')
-            pE.(field) = log(0.75/(1-0.75));      % in logit-space - bounded between 0 and 1!
-            pC{i,i}    = prior_variance;
-        elseif strcmp(field,'omega_loss')
-            pE.(field) = log(0.75/(1-0.75));      % in logit-space - bounded between 0 and 1!
-            pC{i,i}    = prior_variance;    
         else
-            pE.(field) = 0;      
+            pE.(field) = DCM.estimation_prior.(field);      
             pC{i,i}    = prior_variance;
         end
     end
@@ -150,34 +117,12 @@ if ~isstruct(P); P = spm_unvec(P,M.pE); end
 mdp   = M.mdp;
 field = fieldnames(M.pE);
 for i = 1:length(field)
-    if strcmp(field{i},'alpha')
+    if ismember(field{i},{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
         mdp.(field{i}) = exp(P.(field{i}));
-    elseif strcmp(field{i},'beta')
-        mdp.(field{i}) = exp(P.(field{i}));
-    elseif strcmp(field{i},'cs')
-        mdp.(field{i}) = exp(P.(field{i}));
-    elseif strcmp(field{i},'p_a')
-        mdp.(field{i}) = exp(P.(field{i}));
-    elseif strcmp(field{i},'cr')
-        mdp.(field{i}) = exp(P.(field{i}));
-    elseif strcmp(field{i},'cl')
-        mdp.(field{i}) = exp(P.(field{i}));
-    elseif strcmp(field{i},'eta')
-        mdp.(field{i}) = 1/(1+exp(-P.(field{i})));
-    elseif strcmp(field{i},'eta_neu')
-        mdp.(field{i}) = 1/(1+exp(-P.(field{i})));
-    elseif strcmp(field{i},'eta_loss')
-        mdp.(field{i}) = 1/(1+exp(-P.(field{i})));
-    elseif strcmp(field{i},'eta_win')
-        mdp.(field{i}) = 1/(1+exp(-P.(field{i})));
-    elseif strcmp(field{i},'omega')
-        mdp.(field{i}) = 1/(1+exp(-P.(field{i})));
-    elseif strcmp(field{i},'omega_loss')
-        mdp.(field{i}) = 1/(1+exp(-P.(field{i})));
-    elseif strcmp(field{i},'omega_win')
+    elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neu', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
         mdp.(field{i}) = 1/(1+exp(-P.(field{i})));
     else
-        mdp.(field{i}) = exp(P.(field{i}));
+        mdp.(field{i}) = (P.(field{i}));
     end
 end
 
@@ -201,27 +146,31 @@ Y_Block = Y{:}-1;
 choices = reshape(Y_Block,mdp.T,mdp.NB)';
 
 L = 0;
+force_choice = mdp.force_choice;
+force_outcome = mdp.force_outcome;
 
 % Each block is separate -- effectively resetting beliefs at the start of
 % each block. 
 for idx_block = 1:mdp.NB
 
-p1 = .5;
-p2 = .5;
-p3 = .5;
+    p1 = .5;
+    p2 = .5;
+    p3 = .5;
 
-true_probs = [p1   p2   p3   ;
-              1-p1 1-p2 1-p3];
+    true_probs = [p1   p2   p3   ;
+                  1-p1 1-p2 1-p3];
 
-% simulating or fitting
-sim = 0; %1 = simulating, 0 = fitting
+    % simulating or fitting
+    sim = 0; %1 = simulating, 0 = fitting
+    mdp.force_choice = force_choice(idx_block,:);
+    mdp.force_outcome = force_outcome(idx_block,:);
 
 
-    % solve MDP and accumulate log-likelihood
-    %--------------------------------------------------------------------------
-    MDP_Block{idx_block} = Simple_TAB_model(mdp, rewards(idx_block,:), choices(idx_block,:), sim);
+        % solve MDP and accumulate log-likelihood
+        %--------------------------------------------------------------------------
+    MDP_Block{idx_block} = Simple_TAB_model_v2(mdp, rewards(idx_block,:), choices(idx_block,:), sim);
 
-    for j = 1:mdp.T
+    for j = 4:mdp.T
         L = L + log(MDP_Block{idx_block}.action_probabilities(MDP_Block{idx_block}.choices(j),j) + eps);
     end
 
