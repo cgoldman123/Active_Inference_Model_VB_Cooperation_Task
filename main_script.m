@@ -2,6 +2,7 @@
 dbstop if error
 SIM_PASSED_PARAMETERS = false; % this simfits the parameters passed in, instead of simfitting params fit to data
 SIMFIT = true;
+DO_MODEL_FREE = true;
 
 %%%% WILL HAVE TO CHANGE LOCAL SO THAT WE PROPERLY READ IN LEFTY BEHAVIORAL
 %%%% FILE
@@ -69,11 +70,13 @@ for subject = fit_list
 
     if experiment_mode == "local"
         DCM.config.NB = 22;
-        fit_results = TAB_fit_simple_local(subject,DCM);
+        [fit_results,file] = TAB_fit_simple_local(subject,DCM);
     elseif experiment_mode == "prolific"
         DCM.config.NB = 30;
-        fit_results = TAB_fit_simple_prolific(subject,DCM);
+        DCM.config.NB = 15;
+        [fit_results,file] = TAB_fit_simple_prolific(subject,DCM);
     end
+    
 
     
     if SIM_PASSED_PARAMETERS
@@ -119,6 +122,13 @@ for subject = fit_list
         result_table = [result_table, sim_addl_vals_table,  sim_post_table];
         save([result_dir '/' char(subject) '_simfit_results.mat'], "simmed_results");
     end
+    
+   
+    if DO_MODEL_FREE
+        mf_results = coop_model_free(file);
+        result_table = [result_table, struct2table(mf_results)];
+    end
+    
     writetable(result_table, [result_dir '/coop_fit_' char(subject) '.csv']);
 
 

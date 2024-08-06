@@ -64,10 +64,13 @@ for t = 1:params.T
         if t == 1
             a{t} = a_0;
         end
-        actions(t) = params.force_choice(t);
-        outcomes(t) = params.force_outcome(t);
-        outcome_vector(params.force_outcome(t),t) = 1;
+%         actions(t) = params.force_choice(t);
+%         outcomes(t) = params.force_outcome(t);
+%         outcome_vector(params.force_outcome(t),t) = 1;
         
+        actions(t) = choices(t); 
+        outcomes(t) = rewards(t);    
+        outcome_vector(outcomes(t),t) = 1; 
         % only accumulate concentration parameters
         % forgetting part
         a{t+1} = (a{t} - a_0)*params.omega + a_0;

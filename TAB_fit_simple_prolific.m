@@ -1,4 +1,4 @@
-function fit_results = TAB_fit_simple_prolific(subject,DCM)
+function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
     %% Add Subj Data (Parse the data files)
     if ispc
         root = 'L:/';
@@ -35,6 +35,8 @@ function fit_results = TAB_fit_simple_prolific(subject,DCM)
             first_game_trial = min(find(ismember(subdat.trial_type, 'MAIN_START'))) +2;
             clean_subdat = subdat(first_game_trial:end, :);
             % make sure correct number of trials
+            % note that event_type ==5 should always be 480 but sometimes
+            % event_type ==4 will be 479
             if (length(clean_subdat.result(clean_subdat.event_type == 5)) ~= 480) || (length(clean_subdat.response(clean_subdat.event_type == 5)) ~= 480)
                 has_practice_effects = true;
                 continue;
@@ -142,6 +144,7 @@ function fit_results = TAB_fit_simple_prolific(subject,DCM)
                 sub.o{i,1} = 4;
             end
         end
+        sub.o = sub.o(1:NB*T,:);
         sub.o = cell2mat(sub.o);
 
         for i = 1:NB
@@ -155,7 +158,7 @@ function fit_results = TAB_fit_simple_prolific(subject,DCM)
                 end
             end
         end
-
+        sub.u = sub.u(1:NB*T,:);
         sub.u = cell2mat(sub.u);
 
         o_all = [];
