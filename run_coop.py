@@ -1,6 +1,8 @@
 import sys, os, re, subprocess
 
 subject_list_path = '/media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/cooperation_prolific_IDs.csv'
+subject_list_path = '/media/labs/rsmith/lab-members/cgoldman/Wellbeing/local/local_wellbeing_IDs.csv'
+
 results = sys.argv[1]
 experiment_mode = sys.argv[2] # indicate inperson, mturk, or prolific
 
@@ -33,7 +35,8 @@ for subject in subjects:
     
 
 
-    ###python3 /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/scripts/cooperation_task_scripts_CMG/run_coop.py  /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/coop_simfits_prolific_7-24_with_mf "prolific"
+    ###python3 /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/scripts/cooperation_task_scripts_CMG/run_coop.py  /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/coop_simfits_prolific_8-9-24_three_etas "prolific"
+    ###python3 /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/scripts/cooperation_task_scripts_CMG/run_coop.py  /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/coop_fits_local_8-14-24_three_etas "local"
 
 
     ## joblist | grep coop | grep -Po 98.... | xargs scancel

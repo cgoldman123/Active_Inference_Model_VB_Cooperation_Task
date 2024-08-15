@@ -68,7 +68,7 @@ for i = 1:length(DCM.field)
         if ismember(field,{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
             pE.(field) = log(DCM.estimation_prior.(field));  % in log-space (to keep positive)
             pC{i,i}    = prior_variance;
-        elseif ismember(field,{'eta_win', 'eta_loss', 'eta_neu', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
+        elseif ismember(field,{'eta_win', 'eta_loss', 'eta_neutral', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
             pE.(field) = log(DCM.estimation_prior.(field)/(1-DCM.estimation_prior.(field)));      % in logit-space - bounded between 0 and 1!
             pC{i,i}    = prior_variance;
         else
@@ -119,7 +119,7 @@ field = fieldnames(M.pE);
 for i = 1:length(field)
     if ismember(field{i},{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
         mdp.(field{i}) = exp(P.(field{i}));
-    elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neu', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
+    elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neutral', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
         mdp.(field{i}) = 1/(1+exp(-P.(field{i})));
     else
         mdp.(field{i}) = (P.(field{i}));
@@ -127,17 +127,6 @@ for i = 1:length(field)
 end
 
 
-% discern whether learning is enabled - and identify unique trials if not
-%--------------------------------------------------------------------------
-if any(ismember(fieldnames(mdp),{'a','b','d','c','d','e'}))
-    j = 1:numel(U);
-    k = 1:numel(U);
-else
-    % find unique trials (up until the last outcome)
-    %----------------------------------------------------------------------
-    u       = spm_cat(U');
-    [i,j,k] = unique(u(:,1:(end - 1)),'rows');
-end
 
 U_Block = U{:}-1;
 rewards = reshape(U_Block,mdp.T,mdp.NB)';

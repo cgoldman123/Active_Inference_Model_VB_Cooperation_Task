@@ -1,7 +1,9 @@
 % Main script for model fitting the cooperation task data 
 dbstop if error
+clear all;
+
 SIM_PASSED_PARAMETERS = false; % this simfits the parameters passed in, instead of simfitting params fit to data
-SIMFIT = true;
+SIMFIT = false;
 DO_MODEL_FREE = true;
 
 %%%% WILL HAVE TO CHANGE LOCAL SO THAT WE PROPERLY READ IN LEFTY BEHAVIORAL
@@ -14,9 +16,9 @@ if ispc
     
     experiment_mode = "prolific";
     if experiment_mode == "local"
-        fit_list = ["BW521","BV696","BV360"];
+        fit_list = ["BN299"]; % BN299 righty, OP123 lefty (orestes)
     elseif experiment_mode == "prolific"
-        fit_list = ["5590a34cfdf99b729d4f69dc"];
+        fit_list = ["5590a34cfdf99b729d4f69dc"]; %5590a34cfdf99b729d4f69dc
     end
     
     simmed_alpha = 3.1454473;
@@ -61,11 +63,17 @@ for subject = fit_list
     DCM.estimation_prior.cr = 1; %Reward Seeking preference
     DCM.estimation_prior.cl = 1; %Loss aversion
     DCM.estimation_prior.alpha = 4; %Action Precision
-    DCM.estimation_prior.eta = .5; %Learning rate
+    %DCM.estimation_prior.eta = .5; %Learning rate
+    DCM.estimation_prior.eta_win = .5; %Learning rate
+    DCM.estimation_prior.eta_neutral = .5; %Learning rate
+    DCM.estimation_prior.eta_loss = .5; %Learning rate
     DCM.estimation_prior.omega = .5; %Forgetting rate
-    DCM.field = fieldnames(DCM.estimation_prior);
-    DCM.config.forgetting_split = 0; % 1 = separate wins/losses, 0 = not
-    DCM.config.learning_split = 0; % 1 = separate wins/losses, 0 = not
+    %DCM.field = fieldnames(DCM.estimation_prior);
+    DCM.field = {'opt','cr','cl','alpha','omega'};
+    
+    
+    DCM.config.forgetting_split = 0; % 1 = separate wins/losses/neutral, 0 = not
+    DCM.config.learning_split = 1; % 1 = separate wins/losses/neutral, 0 = not
     DCM.config.T = 16; % trials per block
 
     if experiment_mode == "local"
@@ -73,7 +81,7 @@ for subject = fit_list
         [fit_results,file] = TAB_fit_simple_local(subject,DCM);
     elseif experiment_mode == "prolific"
         DCM.config.NB = 30;
-        DCM.config.NB = 15;
+        %DCM.config.NB = 15; fit only first half of blocks
         [fit_results,file] = TAB_fit_simple_prolific(subject,DCM);
     end
     

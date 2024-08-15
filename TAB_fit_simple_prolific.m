@@ -41,8 +41,6 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
                 has_practice_effects = true;
                 continue;
             end
-        else 
-            continue;
         end
         
         %% 12. Set up model structure
@@ -73,10 +71,7 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
             force_choice(i, :) = arrayfun(@(c) force_choice_map(c), forced_letters);
             forced_outcome_letters = trial_types{i}(underscore_indices(3)+1:underscore_indices(3)+3);
             force_outcome(i, :) = arrayfun(@(c) force_outcome_map(c), forced_outcome_letters);
-%             block_probs(1,:,i) = str2double(strsplit(schedule.good_probabilities{i},'_'));
-%             block_probs(2,:,i) = str2double(strsplit(schedule.safe_probabilities{i},'_'));
-%             block_probs(3,:,i) = str2double(strsplit(schedule.bad_probabilities{i},'_'));
-            
+   
             block_probs(:,1,i) = str2double(strsplit(schedule.good_probabilities{i},'_'))';
             block_probs(:,2,i) = str2double(strsplit(schedule.safe_probabilities{i},'_'))';
             block_probs(:,3,i) = str2double(strsplit(schedule.bad_probabilities{i},'_'))';
@@ -93,11 +88,6 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
         DCM.MDP.force_outcome = force_outcome;
         DCM.MDP.BlockProbs = block_probs;
             %--------------------------------------------------------------------------
-        learning = 1; %fit eta?
-        forgetting = 1; %fit omega?
-
-
-
         %if splitting forgetting rates
         DCM.MDP.forgetting_split = DCM.config.forgetting_split; % 1 = separate wins/losses, 0 = not
              %params.omega_win = 1;
@@ -108,25 +98,6 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
              %params.eta_win = 1;
              %params.eta_loss = 1;
 
-        % specify true reward probabilities if simulating (won't influence fitting)
-        p1 = .9;
-        p2 = .9;
-        p3 = .9;
-
-        true_probs = [p1   p2   p3   ;
-                      1-p1 1-p2 1-p3];
-
-        % simulating or fitting
-        sim = 0; %1 = simulating, 0 = fitting
-        %sim.true_probs = true_probs;
-
-
-        % if not fitting (specify if fitting)
-        rewards = [];
-        choices = [];
-
-        % rewards = [1 1 2...]; % length T
-        % choices = [1 2 3...]; % length T
 
 
 
@@ -189,37 +160,6 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
         DCM.MDP.T = T;
 
 
-        
-%         DCM.field = config.field;
-%         if forgetting==1 & learning==1
-%                 if params.forgetting_split==1 & params.learning_split==1
-%                 DCM.field  = {'alpha' 'cr' 'eta_win' 'eta_loss','omega_win' 'omega_loss', 'p_a'}; % Parameter field
-% 
-%                 elseif params.forgetting_split==1 & params.learning_split==0
-%                 DCM.field  = {'alpha' 'cr' 'eta','omega_win' 'omega_loss', 'p_a'}; % Parameter field
-% 
-%                 elseif params.forgetting_split==0 & params.learning_split==1
-%                 DCM.field  = {'alpha' 'cr' 'eta_win' 'eta_loss','omega', 'p_a'}; % Parameter field
-% 
-%                 else
-% 
-%                 DCM.field  = {'alpha' 'cr' 'cl' 'eta' 'omega' 'p_a'}; % Parameter field
-%                 end
-%         elseif forgetting==0 & learning==1
-%                 if params.learning_split==1
-%                 DCM.field  = {'alpha' 'cr' 'eta_win' 'eta_loss', 'p_a'}; % Parameter field
-% 
-%                 else 
-%                 DCM.field  = {'alpha' 'cr' 'eta','p_a'}; % Parameter field
-%                 end
-%         elseif forgetting==1 & learning==0
-%                 if params.forgetting_split==1
-%                 DCM.field  = {'alpha' 'cr' 'omega_win' 'omega_loss', 'p_a'}; % Parameter field
-% 
-%                 else 
-%                 DCM.field  = {'alpha' 'cr' 'omega','p_a'}; % Parameter field
-%                 end
-%         end
 
 
         DCM.U      = {o_all};              % trial specification (stimuli)
@@ -238,7 +178,7 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
             if ismember(field{i},{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
                 prior.(field{i}) = exp(DCM.M.pE.(field{i}));
                 mdp.(field{i}) = exp(DCM.Ep.(field{i}));
-            elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neu', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
+            elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neutral', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
                 prior.(field{i}) = 1/(1+exp(-DCM.M.pE.(field{i})));
                 mdp.(field{i}) = 1/(1+exp(-DCM.Ep.(field{i})));  
             else
