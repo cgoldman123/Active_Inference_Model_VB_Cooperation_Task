@@ -58,7 +58,6 @@ C =  spm_softmax([params.cr+params.cl+eps params.cl+eps eps]');
 
 outcome_vector = zeros(3,params.T);
 
-
 for t = 1:params.T
     if t <= 3
         if t == 1
@@ -72,8 +71,6 @@ for t = 1:params.T
         outcomes(t) = rewards(t);    
         outcome_vector(outcomes(t),t) = 1; 
         % only accumulate concentration parameters
-        % forgetting part
-        a{t+1} = (a{t} - a_0)*params.omega + a_0;
         % learning part
         if params.learning_split
             if outcomes(t) == 1
@@ -84,8 +81,28 @@ for t = 1:params.T
                 eta = params.eta_loss;
             end
         else
-            eta = params.eta;
+        eta = params.eta;
         end
+
+        %forgetting part
+        if params.forgetting_split_matrix
+            if outcomes(t) == 1
+                omega = params.omega_win;
+            elseif outcomes(t) == 2
+                omega = params.omega_neutral;
+            elseif outcomes(t) == 3
+                omega = params.omega_loss;
+            end
+            a{t+1} = (a{t} - a_0)*(1-omega)+ a_0;
+
+        elseif params.forgetting_split_row
+            omega = [1-params.omega_win; 1-params.omega_neutral; 1-params.omega_loss];
+            a{t+1} = (a{t} - a_0).* repmat(omega, 1, 3)+ a_0;
+        else
+            omega = params.omega;
+            a{t+1} = (a{t} - a_0)*(1-omega)+ a_0;
+        end 
+        
         a{t+1} = a{t+1}+eta*(B_pi(:,actions(t))*outcome_vector(:,t)')';
         %learning_rate
        
@@ -144,7 +161,9 @@ for t = 1:params.T
         else
             eta = params.eta;
         end
-        if params.forgetting_split
+
+        % forgetting part
+        if params.forgetting_split_matrix
             if outcomes(t) == 1
                 omega = params.omega_win;
             elseif outcomes(t) == 2
@@ -152,15 +171,17 @@ for t = 1:params.T
             elseif outcomes(t) == 3
                 omega = params.omega_loss;
             end
+            a{t+1} = (a{t} - a_0)*(1-omega)+ a_0;
+
+        elseif params.forgetting_split_row
+            omega = [1-params.omega_win; 1-params.omega_neutral; 1-params.omega_loss];
+            a{t+1} = (a{t} - a_0).* repmat(omega, 1, 3)+ a_0;
         else
             omega = params.omega;
-        end      
+            a{t+1} = (a{t} - a_0)*(1-omega)+ a_0;
+        end 
         
-        
-        
-        % forgetting part
-        a{t+1} = (a{t} - a_0)*(1-omega) + a_0;
-        % learning part
+      % learning part
         a{t+1} = a{t+1}+ eta*(B_pi(:,actions(t))*outcome_vector(:,t)')';
         
     end

@@ -238,6 +238,7 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
         end
 
         fit_results.file = {file};
+        fit_results.num_blocks = NB;
         fit_results.prior = prior;
         fit_results.parameters = posterior_params;
         fit_results.param_names = DCM.field;

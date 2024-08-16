@@ -14,9 +14,9 @@ if ispc
     root = 'L:';
     result_dir = [root '/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/'];
     
-    experiment_mode = "prolific";
+    experiment_mode = "local";
     if experiment_mode == "local"
-        fit_list = ["BN299"]; % BN299 righty, OP123 lefty (orestes)
+        fit_list = ["BN299"]; % BN299 righty, OP123 lefty (orestes) % BV696 did 30 trial version
     elseif experiment_mode == "prolific"
         fit_list = ["5590a34cfdf99b729d4f69dc"]; %5590a34cfdf99b729d4f69dc
     end
@@ -63,17 +63,17 @@ for subject = fit_list
     DCM.estimation_prior.cr = 1; %Reward Seeking preference
     DCM.estimation_prior.cl = 1; %Loss aversion
     DCM.estimation_prior.alpha = 4; %Action Precision
-    %DCM.estimation_prior.eta = .5; %Learning rate
-    DCM.estimation_prior.eta_win = .5; %Learning rate
-    DCM.estimation_prior.eta_neutral = .5; %Learning rate
-    DCM.estimation_prior.eta_loss = .5; %Learning rate
+    DCM.estimation_prior.eta = .5; %Learning rate
+%     DCM.estimation_prior.eta_win = .5; %Learning rate
+%     DCM.estimation_prior.eta_neutral = .5; %Learning rate
+%     DCM.estimation_prior.eta_loss = .5; %Learning rate
     DCM.estimation_prior.omega = .5; %Forgetting rate
     %DCM.field = fieldnames(DCM.estimation_prior);
-    DCM.field = {'opt','cr','cl','alpha','omega'};
+    DCM.field = {'opt','cr','cl','alpha','omega', 'eta'};
     
     
     DCM.config.forgetting_split = 0; % 1 = separate wins/losses/neutral, 0 = not
-    DCM.config.learning_split = 1; % 1 = separate wins/losses/neutral, 0 = not
+    DCM.config.learning_split = 0; % 1 = separate wins/losses/neutral, 0 = not
     DCM.config.T = 16; % trials per block
 
     if experiment_mode == "local"
@@ -108,8 +108,8 @@ for subject = fit_list
         prior_values = struct2cell(fit_results.prior);
         prior_table = cell2table(prior_values', 'VariableNames', strcat('prior_', prior_fields));
         % Extract additional values
-        addl_vals_table = table({char(subject)}, fit_results.file, fit_results.avg_action_prob, fit_results.model_acc, fit_results.has_practice_effects, ...
-         'VariableNames', {'id', 'file', 'avg_action_prob', 'model_acc', 'has_practice_effects'});
+        addl_vals_table = table({char(subject)}, fit_results.num_blocks, fit_results.file, fit_results.avg_action_prob, fit_results.model_acc, fit_results.has_practice_effects, ...
+         'VariableNames', {'id', 'num_blocks', 'file', 'avg_action_prob', 'model_acc', 'has_practice_effects'});
         post_fields = fieldnames(fit_results.prior);
         post_values = struct2cell(fit_results.parameters);
         post_table = cell2table(post_values', 'VariableNames', strcat('posterior_', post_fields));

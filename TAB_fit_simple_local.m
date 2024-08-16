@@ -35,9 +35,8 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
             first_game_trial = min(find(ismember(subdat.trial_type, 'MAIN_START'))) +2;
             clean_subdat = subdat(first_game_trial:end, :);
             % make sure correct number of trials
-            % note that event_type ==5 should always be 480 but sometimes
-            % event_type ==4 will be 479
-            if (length(clean_subdat.result(clean_subdat.event_code == 5)) ~= 352) || (length(clean_subdat.response(clean_subdat.event_code == 5)) ~= 352)
+            % a couple early participants played version with 30 blocks
+            if (length(clean_subdat.result(clean_subdat.event_code == 5)) ~= 352) && (length(clean_subdat.result(clean_subdat.event_code == 5)) ~= 480)
                 has_practice_effects = true;
                 continue;
             end
@@ -48,7 +47,8 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         %==========================================================================
 
         T = DCM.config.T; % trials per block
-        NB  = DCM.config.NB;     % number of blocks
+        %NB  = DCM.config.NB;     
+        NB  = length(clean_subdat.result(clean_subdat.event_code == 5))/16;  % number of blocks can be 22 or 30
         N   = T*NB; % trials per block * number of blocks
 
 
@@ -255,6 +255,7 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         end
 
         fit_results.file = {file};
+        fit_results.num_blocks = NB;
         fit_results.prior = prior;
         fit_results.parameters = posterior_params;
         fit_results.param_names = DCM.field;
