@@ -46,8 +46,8 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         %==========================================================================
         %==========================================================================
 
-        T = DCM.config.T; % trials per block
-        %NB  = DCM.config.NB;     
+        T = DCM.MDP.T; % trials per block
+        %NB  = DCM.MDP.NB;     
         NB  = length(clean_subdat.result(clean_subdat.event_code == 5))/16;  % number of blocks can be 22 or 30
         N   = T*NB; % trials per block * number of blocks
 
@@ -93,15 +93,7 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
             %--------------------------------------------------------------------------
 
 
-        %if splitting forgetting rates
-        DCM.MDP.forgetting_split = DCM.config.forgetting_split; % 1 = separate wins/losses, 0 = not
-             %params.omega_win = 1;
-             %params.omega_loss = 1;
 
-        %if splitting learning rates
-         DCM.MDP.learning_split = DCM.config.learning_split; % 1 = separate wins/losses, 0 = not
-             %params.eta_win = 1;
-             %params.eta_loss = 1;
 
 
 
@@ -199,12 +191,13 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         %--------------------------------------------------------------------------
         % re-transform values and compare prior with posterior estimates
         %--------------------------------------------------------------------------
+        mdp = DCM.MDP;
         field = fieldnames(DCM.M.pE);
         for i = 1:length(field)
             if ismember(field{i},{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
                 prior.(field{i}) = exp(DCM.M.pE.(field{i}));
                 mdp.(field{i}) = exp(DCM.Ep.(field{i}));
-            elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neutral', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
+            elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neutral', 'eta', 'omega', 'omega_win', 'omega_loss','omega_neutral', 'opt'})
                 prior.(field{i}) = 1/(1+exp(-DCM.M.pE.(field{i})));
                 mdp.(field{i}) = 1/(1+exp(-DCM.Ep.(field{i})));  
             else
@@ -222,17 +215,9 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         Y_Block = DCM.Y{:}-1;
         choices = reshape(Y_Block,T,NB)';
 
-        mdp.T = T;
-        mdp.learning_split = DCM.config.learning_split; % 1 = separate wins/losses, 0 = not
-        mdp.forgetting_split = DCM.config.forgetting_split; % 1 = separate wins/losses, 0 = not
 
 
         for block=1:NB
-           % mdp.force_choice = params.force_choice(block,:);
-           % mdp.force_outcome = params.force_outcome(block,:);
-            mdp.BlockProbs = block_probs(:,:,block);
-            mdp.force_choice = DCM.MDP.force_choice(block,:);
-            mdp.force_outcome = DCM.MDP.force_outcome(block,:);
             MDP_Block{block} = Simple_TAB_model_v2(mdp, rewards(block,:), choices(block,:), 0);
             % get avg action prob for free choices
             avg_act_probs(block) = sum(MDP_Block{block}.chosen_action_probabilities(4:end))/(mdp.T-3);
@@ -264,6 +249,18 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         fit_results.avg_action_prob = avg_action_prob;
         fit_results.model_acc = model_acc;
         fit_results.has_practice_effects = has_practice_effects;
+
+        fieldnames_DCM = fieldnames(DCM.MDP);
+        for i = 1:length(fieldnames(DCM.MDP))
+            if contains(fieldnames_DCM{i}, {'forgetting_split','learning_split',...
+            'T', 'NB', 'force_choice','force_outcome', 'BlockProbs', 'forgetting_split_row','forgetting_split_matrix'})
+            else
+                if ~contains(fieldnames_DCM{i}, fit_results.param_names)
+                    fit_results.fixed.(fieldnames_DCM{i}) = DCM.MDP.(fieldnames_DCM{i});
+                end
+            end
+        end
+      
         break;
         
         

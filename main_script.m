@@ -58,29 +58,42 @@ for subject = fit_list
 
     % note that we always fit (even when simulating from parameters passed
     % in, because it sets up the mdp how we need it to run the simulation
-    DCM.estimation_prior.opt = .5;
-    %estimation_prior.p_a = .25; %inverse information sensitivity (& lower bound on forgetting)
-    DCM.estimation_prior.cr = 1; %Reward Seeking preference
-    DCM.estimation_prior.cl = 1; %Loss aversion
-    DCM.estimation_prior.alpha = 4; %Action Precision
-    DCM.estimation_prior.eta = .5; %Learning rate
-%     DCM.estimation_prior.eta_win = .5; %Learning rate
-%     DCM.estimation_prior.eta_neutral = .5; %Learning rate
-%     DCM.estimation_prior.eta_loss = .5; %Learning rate
-    DCM.estimation_prior.omega = .5; %Forgetting rate
-    %DCM.field = fieldnames(DCM.estimation_prior);
-    DCM.field = {'opt','cr','cl','alpha','omega', 'eta'};
+    DCM.MDP.forgetting_split_matrix = 0; % 
+    DCM.MDP.forgetting_split_row = 0; % 
+    DCM.MDP.learning_split = 0; % 1 = separate wins/losses/neutral, 0 = not
+    DCM.MDP.T = 16; % trials per block
+
+    if DCM.MDP.learning_split == 1
+        DCM.MDP.eta_win = .5; %Learning rate
+        DCM.MDP.eta_neutral = .5; %Learning rate
+        DCM.MDP.eta_loss = .5; %Learning rate
+    else
+        DCM.MDP.eta = .5; % uncomment and adjust for fixed learning rate
+
+    end 
+
+    if DCM.MDP.forgetting_split_matrix == 1 || DCM.MDP.forgetting_split_row == 1 % 1 = separate wins/losses/neutral, 0 = not
+        DCM.MDP.omega_win = .2;
+        DCM.MDP.omega_loss = .2;
+        DCM.MDP.omega_neutral = .2;
+    else
+        DCM.MDP.omega = .5; %Forgetting rate
+    end
     
     
-    DCM.config.forgetting_split = 0; % 1 = separate wins/losses/neutral, 0 = not
-    DCM.config.learning_split = 0; % 1 = separate wins/losses/neutral, 0 = not
-    DCM.config.T = 16; % trials per block
+    DCM.MDP.opt = .5;
+    DCM.MDP.cr = 1; %Reward Seeking preference
+    DCM.MDP.cl = 1; %Loss aversion
+    DCM.MDP.alpha = 4; %Action Precision/Inverse Temperature
+    %Remove fixed variables from DCM.field, leave the ones you want to fit 
+    DCM.field = {'opt','cr','cl', 'alpha', 'omega','eta'};
+
 
     if experiment_mode == "local"
-        DCM.config.NB = 22;
+        %DCM.MDP.NB = 22;
         [fit_results,file] = TAB_fit_simple_local(subject,DCM);
     elseif experiment_mode == "prolific"
-        DCM.config.NB = 30;
+        DCM.MDP.NB = 30;
         %DCM.config.NB = 15; fit only first half of blocks
         [fit_results,file] = TAB_fit_simple_prolific(subject,DCM);
     end
@@ -113,9 +126,21 @@ for subject = fit_list
         post_fields = fieldnames(fit_results.prior);
         post_values = struct2cell(fit_results.parameters);
         post_table = cell2table(post_values', 'VariableNames', strcat('posterior_', post_fields));
+        if isfield(fit_results, 'fixed') && ~isempty(fit_results.fixed)
+            fixed_fields = fieldnames(fit_results.fixed);
+            fixed_values = struct2cell(fit_results.fixed);
+            fixed_table = cell2table(fixed_values', 'VariableNames', strcat('fixed_', fixed_fields));
+        else
+        end
         save([result_dir '/' char(subject) '_fit_results.mat'], "fit_results");
         % Concatenate all tables horizontally
-        result_table = [addl_vals_table, prior_table, post_table];
+        if isfield(fit_results, 'fixed') && ~isempty(fit_results.fixed)   
+            result_table = [addl_vals_table, prior_table, post_table, fixed_table];
+        else
+            result_table = [addl_vals_table, prior_table, post_table];
+        end
+        result_table.F = fit_results.DCM.F;
+
     end
 
  
