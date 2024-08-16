@@ -51,8 +51,14 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         NB  = length(clean_subdat.result(clean_subdat.event_code == 5))/16;  % number of blocks can be 22 or 30
         N   = T*NB; % trials per block * number of blocks
 
+        values = clean_subdat.trial_type(clean_subdat.event_code == 4);
 
-        trial_types_and_schedule = clean_subdat.trial_type(clean_subdat.event_code==4,:);
+        % Get unique values while preserving their original order
+        [~, unique_idx] = unique(values, 'stable');
+
+        % Assign the unique values to the variable
+        trial_types_and_schedule = values(unique_idx);
+
         split_cells = cellfun(@(x) strsplit(x, ' ', 'CollapseDelimiters', true), trial_types_and_schedule, 'UniformOutput', false);
         % Extract the first and second parts into separate cell arrays
         trial_types = cellfun(@(x) x{1}, split_cells, 'UniformOutput', false);

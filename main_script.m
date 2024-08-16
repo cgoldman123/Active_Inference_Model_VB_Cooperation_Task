@@ -5,6 +5,7 @@ clear all;
 SIM_PASSED_PARAMETERS = false; % this simfits the parameters passed in, instead of simfitting params fit to data
 SIMFIT = false;
 DO_MODEL_FREE = true;
+SAVE_PRED_ERRORS = true;
 
 %%%% WILL HAVE TO CHANGE LOCAL SO THAT WE PROPERLY READ IN LEFTY BEHAVIORAL
 %%%% FILE
@@ -14,9 +15,9 @@ if ispc
     root = 'L:';
     result_dir = [root '/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/'];
     
-    experiment_mode = "local";
+    experiment_mode = "prolific";
     if experiment_mode == "local"
-        fit_list = ["BN299"]; % BN299 righty, OP123 lefty (orestes) % BV696 did 30 trial version
+        fit_list = ["BY457"]; % BN299 righty, OP123 lefty (orestes) % BV696 did 30 trial version
     elseif experiment_mode == "prolific"
         fit_list = ["5590a34cfdf99b729d4f69dc"]; %5590a34cfdf99b729d4f69dc
     end
@@ -60,7 +61,7 @@ for subject = fit_list
     % in, because it sets up the mdp how we need it to run the simulation
     DCM.MDP.forgetting_split_matrix = 0; % 
     DCM.MDP.forgetting_split_row = 0; % 
-    DCM.MDP.learning_split = 0; % 1 = separate wins/losses/neutral, 0 = not
+    DCM.MDP.learning_split = 1; % 1 = separate wins/losses/neutral, 0 = not
     DCM.MDP.T = 16; % trials per block
 
     if DCM.MDP.learning_split == 1
@@ -86,12 +87,17 @@ for subject = fit_list
     DCM.MDP.cl = 1; %Loss aversion
     DCM.MDP.alpha = 4; %Action Precision/Inverse Temperature
     %Remove fixed variables from DCM.field, leave the ones you want to fit 
-    DCM.field = {'opt','cr','cl', 'alpha', 'omega','eta'};
+    DCM.field = {'opt','cr','cl', 'alpha', 'omega','eta_win','eta_loss','eta_neutral'};
 
 
     if experiment_mode == "local"
         %DCM.MDP.NB = 22;
         [fit_results,file] = TAB_fit_simple_local(subject,DCM);
+        if SAVE_PRED_ERRORS
+            pred_errors = get_prediction_errors(subject, fit_results);
+            writetable(pred_errors, [result_dir '/coop_pred_errors_' char(subject) '.csv']);
+        end
+        
     elseif experiment_mode == "prolific"
         DCM.MDP.NB = 30;
         %DCM.config.NB = 15; fit only first half of blocks

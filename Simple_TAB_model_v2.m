@@ -57,6 +57,9 @@ B_pi = [1 0 0;
 C =  spm_softmax([params.cr+params.cl+eps params.cl+eps eps]');
 
 outcome_vector = zeros(3,params.T);
+F = nan(3,params.T);
+G_error = nan(1,params.T);
+chosen_action_probs = nan(1,params.T);
 
 for t = 1:params.T
     if t <= 3
@@ -127,8 +130,9 @@ for t = 1:params.T
         end
         
         % compute action probabilities
-        q(:,t) = spm_softmax(-G(:,t));
-        action_probs(:,t) = spm_softmax(params.alpha*log(q(:,t)))';
+        action_probs(:,t) = spm_softmax(params.alpha*-G(:,t));
+        
+        
         
         % select actions
         if sim == 1 %.toggle == 1
@@ -148,6 +152,11 @@ for t = 1:params.T
             outcomes(t) = rewards(t);
             outcome_vector(rewards(t),t) = 1;
         end
+        
+        % Get surprise
+        F(:, t) = -log(A{t}'*outcome_vector(:,t));
+        action_probs_post = spm_softmax(params.alpha*-G(:,t) - F(:,t));
+        G_error(t) = (action_probs_post - action_probs(:,t))'*G(:,t);
         
         % learning
         if params.learning_split
@@ -199,6 +208,7 @@ model_output.params = params;
 model_output.EFE = G;
 model_output.epistemic_value = epistemic_value;
 model_output.pragmatic_value = pragmatic_value;
+model_output.G_error = G_error;
 
 end
 

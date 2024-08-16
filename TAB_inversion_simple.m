@@ -142,12 +142,6 @@ force_outcome = mdp.force_outcome;
 % each block. 
 for idx_block = 1:mdp.NB
 
-    p1 = .5;
-    p2 = .5;
-    p3 = .5;
-
-    true_probs = [p1   p2   p3   ;
-                  1-p1 1-p2 1-p3];
 
     % simulating or fitting
     sim = 0; %1 = simulating, 0 = fitting
