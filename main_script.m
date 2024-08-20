@@ -3,7 +3,7 @@ dbstop if error
 clear all;
 
 SIM_PASSED_PARAMETERS = false; % this simfits the parameters passed in, instead of simfitting params fit to data
-SIMFIT = false;
+SIMFIT = true;
 DO_MODEL_FREE = true;
 SAVE_PRED_ERRORS = true;
 
@@ -61,7 +61,7 @@ for subject = fit_list
     % in, because it sets up the mdp how we need it to run the simulation
     DCM.MDP.forgetting_split_matrix = 0; % 
     DCM.MDP.forgetting_split_row = 0; % 
-    DCM.MDP.learning_split = 1; % 1 = separate wins/losses/neutral, 0 = not
+    DCM.MDP.learning_split = 0; % 1 = separate wins/losses/neutral, 0 = not
     DCM.MDP.T = 16; % trials per block
 
     if DCM.MDP.learning_split == 1
@@ -78,7 +78,7 @@ for subject = fit_list
         DCM.MDP.omega_loss = .2;
         DCM.MDP.omega_neutral = .2;
     else
-        DCM.MDP.omega = .5; %Forgetting rate
+        DCM.MDP.omega = .2; %Forgetting rate
     end
     
     
@@ -87,7 +87,7 @@ for subject = fit_list
     DCM.MDP.cl = 1; %Loss aversion
     DCM.MDP.alpha = 4; %Action Precision/Inverse Temperature
     %Remove fixed variables from DCM.field, leave the ones you want to fit 
-    DCM.field = {'opt','cr','cl', 'alpha', 'omega','eta_win','eta_loss','eta_neutral'};
+    DCM.field = {'opt','cr','cl', 'alpha', 'omega','eta'};
 
 
     if experiment_mode == "local"

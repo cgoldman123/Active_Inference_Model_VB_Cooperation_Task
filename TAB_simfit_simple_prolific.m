@@ -5,7 +5,8 @@ function sim_results = TAB_simfit_simple_prolific(fit_results)
         choices = fit_results.DCM.Y{:}-1;
         num_blocks = fit_results.DCM.MDP.NB;
         params = fit_results.parameters;
-        params.forgetting_split = fit_results.DCM.MDP.forgetting_split;
+        params.forgetting_split_matrix = fit_results.DCM.MDP.forgetting_split_matrix;
+        params.forgetting_split_row = fit_results.DCM.MDP.forgetting_split_row;
         params.learning_split = fit_results.DCM.MDP.learning_split;
         params.T = fit_results.DCM.MDP.T;
         
@@ -58,8 +59,9 @@ function sim_results = TAB_simfit_simple_prolific(fit_results)
         choices = reshape(Y_Block,params.T,params.NB)';
 
         mdp.T = params.T;
-        mdp.learning_split = params.learning_split; % 1 = separate wins/losses, 0 = not
-        mdp.forgetting_split = params.forgetting_split; % 1 = separate wins/losses, 0 = not
+        mdp.forgetting_split_matrix = params.forgetting_split_matrix; % 1 = separate wins/losses, 0 = not
+        mdp.forgetting_split_row = params.forgetting_split_row; % 1 = separate wins/losses, 0 = not
+        mdp.learning_split = params.learning_split;
 
 
         %     %if splitting learning rates
@@ -72,8 +74,6 @@ function sim_results = TAB_simfit_simple_prolific(fit_results)
         %         
         % %Simulate beliefs using fitted values
         for block=1:params.NB
-           % mdp.force_choice = params.force_choice(block,:);
-           % mdp.force_outcome = params.force_outcome(block,:);
             mdp.force_choice = fit_results.DCM.MDP.force_choice(block,:);
             mdp.force_outcome = fit_results.DCM.MDP.force_outcome(block,:);
             MDP_Block{block} = Simple_TAB_model_v2(mdp, rewards(block,:), choices(block,:), 0);

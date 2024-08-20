@@ -41,6 +41,8 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
                 has_practice_effects = true;
                 continue;
             end
+        else
+            continue;
         end
         
         %% 12. Set up model structure
