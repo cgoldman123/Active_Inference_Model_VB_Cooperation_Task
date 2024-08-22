@@ -159,7 +159,7 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
         DCM.U      = {o_all};              % trial specification (stimuli)
         DCM.Y      = {u_all};              % responses (action)
 
-        DCM        = TAB_inversion_simple(DCM);   % Invert the model
+        DCM        = TAB_inversion_simple_untransformed(DCM);   % Invert the model
 
         %% 6.3 Check deviation of prior and posterior means & posterior covariance:
         %==========================================================================

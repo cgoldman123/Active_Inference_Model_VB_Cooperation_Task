@@ -1,6 +1,14 @@
 % % % Simple TAB Model
 
-function [model_output] = Simple_TAB_model_v2(params, rewards, choices, sim)
+function [model_output] = Simple_TAB_model_v2_transformed(params, rewards, choices, sim)
+
+params.opt = 1/(1+exp(-params.opt)); 
+params.omega = 1/(1+exp(-params.omega)); 
+params.eta = 1/(1+exp(-params.eta));
+params.alpha = exp(params.alpha); 
+params.cr = exp(params.cr); 
+params.cl = exp(params.cl); 
+
 
 
 a_0 = [params.opt params.opt params.opt;

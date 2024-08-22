@@ -1,7 +1,7 @@
 % Samuel Taylor and Ryan Smith, 2021
 
 % Model inversion script
-function [DCM] = TAB_inversion_simple(DCM)
+function [DCM] = TAB_inversion_simple_untransformed(DCM)
 
 % MDP inversion using Variational Bayes
 % FORMAT [DCM] = spm_dcm_mdp(DCM)
@@ -51,32 +51,13 @@ ALL = false;
 
 % prior expectations and covariance
 %--------------------------------------------------------------------------
-prior_variance = 2^-2;
+prior_variance = 1/4;
 
 for i = 1:length(DCM.field)
     field = DCM.field{i};
-    try
-        param = DCM.MDP.(field);
-        param = double(~~param);
-    catch
-        param = 1;
-    end
-    if ALL
-        pE.(field) = zeros(size(param));
-        pC{i,i}    = diag(param);
-    else
-        if ismember(field,{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
-            pE.(field) = log(DCM.MDP.(field));  % in log-space (to keep positive)
-            pC{i,i}    = prior_variance;
-        elseif ismember(field,{'eta_win','eta_loss','eta_neutral','eta','omega','omega_win','omega_loss','omega_neutral','opt'})
-            pE.(field) = log(DCM.MDP.(field)/(1-DCM.MDP.(field)));      % in logit-space - bounded between 0 and 1!
-            pC{i,i}    = prior_variance;
-        else
-            pE.(field) = DCM.MDP.(field);      
-            pC{i,i}    = prior_variance;
-            error("need to transform param");
-        end
-    end
+    pE.(field) = DCM.MDP.(field);      
+    pC{i,i}    = prior_variance;
+        
 end
 
 pC      = spm_cat(pC);
@@ -118,13 +99,7 @@ if ~isstruct(P); P = spm_unvec(P,M.pE); end
 mdp   = M.mdp;
 field = fieldnames(M.pE);
 for i = 1:length(field)
-    if ismember(field{i},{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
-        mdp.(field{i}) = exp(P.(field{i}));
-    elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neutral', 'eta', 'omega', 'omega_win', 'omega_loss','omega_neutral', 'opt'})
-        mdp.(field{i}) = 1/(1+exp(-P.(field{i})));
-    else
-        mdp.(field{i}) = (P.(field{i}));
-    end
+    mdp.(field{i}) = (P.(field{i}));
 end
 
 
@@ -152,7 +127,7 @@ for idx_block = 1:mdp.NB
 
         % solve MDP and accumulate log-likelihood
         %--------------------------------------------------------------------------
-    MDP_Block{idx_block} = Simple_TAB_model_v2(mdp, rewards(idx_block,:), choices(idx_block,:), sim);
+    MDP_Block{idx_block} = Simple_TAB_model_v2_transformed(mdp, rewards(idx_block,:), choices(idx_block,:), sim);
 
     for j = 4:mdp.T
         L = L + log(MDP_Block{idx_block}.action_probabilities(MDP_Block{idx_block}.choices(j),j) + eps);

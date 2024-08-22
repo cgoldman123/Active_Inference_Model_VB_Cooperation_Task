@@ -22,7 +22,6 @@ function sim_results = TAB_simfit_simple_prolific(fit_results)
         simmed_choices = cell2mat(cellfun(@(c) c.choices', MDP_Block, 'UniformOutput', false));
         simmed_outcomes = cell2mat(cellfun(@(c) c.outcomes', MDP_Block, 'UniformOutput', false));
         simmed_DCM.MDP = fit_results.DCM.MDP;
-        simmed_DCM.estimation_prior = fit_results.prior;
 
         simmed_DCM.field = fit_results.DCM.field;
         simmed_DCM.Y = {simmed_choices + 1};
@@ -32,7 +31,7 @@ function sim_results = TAB_simfit_simple_prolific(fit_results)
         
         %% FIT SIMMED BEHAVIOR
         fprintf("Fitting simulated behavior");
-        DCM = TAB_inversion_simple(simmed_DCM); 
+        DCM = TAB_inversion_simple_untransformed(simmed_DCM); 
         % re-transform values and compare prior with posterior estimates
         %--------------------------------------------------------------------------
         field = fieldnames(DCM.M.pE);
@@ -40,7 +39,7 @@ function sim_results = TAB_simfit_simple_prolific(fit_results)
             if ismember(field{i},{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl'})
                 prior.(field{i}) = exp(DCM.M.pE.(field{i}));
                 mdp.(field{i}) = exp(DCM.Ep.(field{i}));
-            elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neu', 'eta', 'omega', 'omega_win', 'omega_loss', 'opt'})
+            elseif ismember(DCM.field{i},{'eta_win', 'eta_loss', 'eta_neutral', 'eta', 'omega', 'omega_win', 'omega_loss','omega_neutral', 'opt'})
                 prior.(field{i}) = 1/(1+exp(-DCM.M.pE.(field{i})));
                 mdp.(field{i}) = 1/(1+exp(-DCM.Ep.(field{i})));  
             else

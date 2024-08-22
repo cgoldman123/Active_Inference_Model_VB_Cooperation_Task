@@ -65,27 +65,27 @@ for subject = fit_list
     DCM.MDP.T = 16; % trials per block
 
     if DCM.MDP.learning_split == 1
-        DCM.MDP.eta_win = .5; %Learning rate
-        DCM.MDP.eta_neutral = .5; %Learning rate
-        DCM.MDP.eta_loss = .5; %Learning rate
+        DCM.MDP.eta_win = 0; %Learning rate
+        DCM.MDP.eta_neutral = 0; %Learning rate
+        DCM.MDP.eta_loss = 0; %Learning rate
     else
-        DCM.MDP.eta = .5; % uncomment and adjust for fixed learning rate
+        DCM.MDP.eta = 0; % uncomment and adjust for fixed learning rate
 
     end 
 
     if DCM.MDP.forgetting_split_matrix == 1 || DCM.MDP.forgetting_split_row == 1 % 1 = separate wins/losses/neutral, 0 = not
-        DCM.MDP.omega_win = .2;
-        DCM.MDP.omega_loss = .2;
-        DCM.MDP.omega_neutral = .2;
+        DCM.MDP.omega_win = -1.3863;
+        DCM.MDP.omega_loss = -1.3863;
+        DCM.MDP.omega_neutral = -1.3863;
     else
-        DCM.MDP.omega = .2; %Forgetting rate
+        DCM.MDP.omega = -1.3863; %Forgetting rate
     end
     
     
-    DCM.MDP.opt = .5;
-    DCM.MDP.cr = 1; %Reward Seeking preference
-    DCM.MDP.cl = 1; %Loss aversion
-    DCM.MDP.alpha = 4; %Action Precision/Inverse Temperature
+    DCM.MDP.opt = 0;
+    DCM.MDP.cr = 0; %Reward Seeking preference
+    DCM.MDP.cl = 0; %Loss aversion
+    DCM.MDP.alpha = 1.3863; %Action Precision/Inverse Temperature
     %Remove fixed variables from DCM.field, leave the ones you want to fit 
     DCM.field = {'opt','cr','cl', 'alpha', 'omega','eta'};
 
