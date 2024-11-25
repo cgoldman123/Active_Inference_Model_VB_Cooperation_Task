@@ -2,7 +2,7 @@
 dbstop if error
 clear all;
 
-SIM_PASSED_PARAMETERS = false; % this simfits the parameters passed in, instead of simfitting params fit to data
+SIM_PASSED_PARAMETERS = true; % this simfits the parameters passed in, instead of simfitting params fit to data
 SIMFIT = true;
 DO_MODEL_FREE = true;
 SAVE_PRED_ERRORS = true;
@@ -27,7 +27,7 @@ if ispc
     simmed_cl = 4.4656905;
     simmed_eta = 0.4853053;
     simmed_omega = 0.46222943;
-    simmed_p_a = 0.68625881;
+    simmed_opt = 0.68625881;
    
 elseif isunix
     root = '/media/labs';
@@ -39,7 +39,7 @@ elseif isunix
     simmed_cl = str2double(getenv('CL'))
     simmed_eta = str2double(getenv('ETA'))
     simmed_omega = str2double(getenv('OMEGA'))
-    simmed_p_a = str2double(getenv('P_A'))
+    simmed_opt = str2double(getenv('OPT'))
 
     
     (fit_list)
@@ -113,7 +113,7 @@ for subject = fit_list
         fit_results.parameters.cl = simmed_cl;
         fit_results.parameters.eta = simmed_eta;
         fit_results.parameters.omega = simmed_omega;
-        fit_results.parameters.p_a = simmed_p_a;
+        fit_results.parameters.opt = simmed_opt;
         
         post_fields = fieldnames(fit_results.prior);
         post_values = struct2cell(fit_results.parameters);

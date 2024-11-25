@@ -35,7 +35,7 @@ for subject in subjects:
     
 
 
-    ###python3 /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/scripts/cooperation_task_scripts_CMG/run_coop.py  /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/coop_fits_prolific_8-19-24_one_eta "prolific"
+    ###python3 /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/scripts/cooperation_task_scripts_CMG/run_coop.py  /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/coop_fits_prolific_8-22-24_untransformed "prolific"
     ###python3 /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/scripts/cooperation_task_scripts_CMG/run_coop.py  /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/coop_fits_local_corrected_8-14-24_three_etas "local"
 
 

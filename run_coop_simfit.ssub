@@ -29,8 +29,8 @@ export ETA
 OMEGA=$6
 export OMEGA
 
-P_A=$7
-export P_A
+OPT=$7
+export OPT
 
 CR=$8
 export CR

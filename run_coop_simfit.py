@@ -3,7 +3,7 @@ import sys, os, re, subprocess, csv
 # this script takes previously fit parameters in fit_results (e.g. fits using MCMC) then runs a matlab script to simulate
 # behavior with those parameters, then fit the simulated behavior
 
-fit_results = '/media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/data_analysis/compiled_model_fits_MCMC/coop_MCMC_prolific_7_19_24.csv'
+fit_results = '/media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/data_analysis/compiled_model_fits_MCMC/coop_MCMC_simfit_8_22_24_transformed.csv'
 results = sys.argv[1]
 experiment_mode = sys.argv[2] # indicate inperson, mturk, or prolific
 
@@ -28,14 +28,14 @@ with open(fit_results, newline='') as csvfile:
         stderr_name = f'{results}/logs/{subject["id"]}-%J.stderr'
 
         jobname = f'coop-fit-{subject["id"]}'
-        os.system(f'sbatch -J {jobname} -o {stdout_name} -e {stderr_name} {ssub_path} {results} {experiment_mode} {subject["id"]} {subject["mean_alpha"]} {subject["mean_eta"]} {subject["mean_omega"]} {subject["mean_pa"]} {subject["mean_cr"]} {subject["mean_cl"]}') 
+        os.system(f'sbatch -J {jobname} -o {stdout_name} -e {stderr_name} {ssub_path} {results} {experiment_mode} {subject["id"]} {subject["mean_alpha"]} {subject["mean_eta"]} {subject["mean_omega"]} {subject["mean_opt"]} {subject["mean_cr"]} {subject["mean_cl"]}') 
 
         print(f"SUBMITTED JOB [{jobname}]")
         
     
 
 
-    ###python3 /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/scripts/cooperation_task_scripts_CMG/run_coop_simfit.py  /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/coop_VB_simfit_using_MCMC_params_7-20 "prolific"
+    ###python3 /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/scripts/cooperation_task_scripts_CMG/run_coop_simfit.py  /media/labs/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/coop_VB_simfit_using_MCMC_params_8-23 "prolific"
 
 
     ## joblist | grep coop | grep -Po 98.... | xargs scancel
