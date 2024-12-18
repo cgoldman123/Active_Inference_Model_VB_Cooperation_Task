@@ -63,7 +63,8 @@ function [fit_results,file] = TAB_fit_simple_prolific(subject,DCM)
         location_map = containers.Map({'g', 's', 'b'}, [2, 3, 4]);
         force_choice_map = containers.Map({'g', 's', 'b'}, [1, 2, 3]);
         force_outcome_map = containers.Map({'W', 'N', 'L'}, [1, 2, 3]);
-        schedule = readtable([root 'rsmith/lab-members/osanchez/wellbeing/cooperation/BV/task_schedule/prolific_30_block_schedule.xlsx']);
+%         schedule = readtable([root 'rsmith/lab-members/osanchez/wellbeing/cooperation/BV/task_schedule/prolific_30_block_schedule.xlsx']);
+        schedule = readtable([root 'rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/task_schedule/prolific_30_block_schedule.xlsx']);
 
         for i = 1:length(trial_types)
             underscore_indices = strfind(trial_types{i}, '_');
