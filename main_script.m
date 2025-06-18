@@ -2,7 +2,7 @@
 dbstop if error
 clear all;
 
-SIM_PASSED_PARAMETERS = true; % this simfits the parameters passed in, instead of simfitting params fit to data
+SIM_PASSED_PARAMETERS = false; % this simfits the parameters passed in, instead of simfitting params fit to data
 SIMFIT = true;
 DO_MODEL_FREE = true;
 SAVE_PRED_ERRORS = true;
@@ -15,7 +15,7 @@ if ispc
     root = 'L:';
     result_dir = [root '/rsmith/lab-members/cgoldman/Wellbeing/cooperation_task/modeling_output/coop_VB_model_output/'];
     
-    experiment_mode = "prolific";
+    experiment_mode = "local";
     if experiment_mode == "local"
         fit_list = ["BY457"]; % BN299 righty, OP123 lefty (orestes) % BV696 did 30 trial version
     elseif experiment_mode == "prolific"
