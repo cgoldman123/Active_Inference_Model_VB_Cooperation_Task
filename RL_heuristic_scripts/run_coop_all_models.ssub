@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+#SBATCH --partition=c3
+#SBATCH --ntasks=1
+#SBATCH --mem=3000
+#SBATCH --nodes=1
+#SBATCH --chdir=/media/labs/rsmith/lab-members/osanchez/wellbeing/cooperation/scripts/other_models/RL_RW/Final_RL_KPC_heuristic/
+#SBATCH --begin=now
+#
+#################################################
+
+SUBJECT=$1
+export SUBJECT
+
+RESULTS=$2
+export RESULTS
+
+FIELD=$3
+export FIELD
+
+EXPERIMENT=$4
+export EXPERIMENT
+
+
+module load matlab/2022a
+run_file='/media/labs/rsmith/lab-members/osanchez/wellbeing/cooperation/scripts/other_models/RL_RW/Final_RL_KPC_heuristic/main_script_RL.m'
+matlab -nodisplay -nosplash < ${run_file}

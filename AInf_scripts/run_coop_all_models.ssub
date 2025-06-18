@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+#SBATCH --partition=c3
+#SBATCH --ntasks=1
+#SBATCH --mem=12000
+#SBATCH --nodes=1
+#SBATCH --chdir=/media/labs/rsmith/lab-members/osanchez/wellbeing/cooperation/scripts/other_models/AI/Final_AI_KPC/
+#SBATCH --begin=now
+#
+#################################################
+
+SUBJECT=$1
+export SUBJECT
+
+RESULTS=$2
+export RESULTS
+
+FIELD=$3
+export FIELD
+
+FORGETTING_SPLIT_MATRIX=$4
+export FORGETTING_SPLIT_MATRIX
+
+LEARNING_SPLIT=$5
+export LEARNING_SPLIT
+
+EXPERIMENT=$6
+export EXPERIMENT
+
+
+module load matlab/2022a
+run_file='/media/labs/rsmith/lab-members/osanchez/wellbeing/cooperation/scripts/other_models/AI/Final_AI_KPC/main_script_all_models.m'
+unset DISPLAY
+matlab -nodisplay -nosplash < ${run_file}
