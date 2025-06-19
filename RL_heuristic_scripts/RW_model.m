@@ -89,6 +89,16 @@ prediction_error_sequence = zeros(1,T);
 for t = 1:T
     
     if t <= 3
+        % Remember 
+        % actions == 1 corresponds to choosing good bandit
+        % actions == 2 corresponds to choosing safe bandit
+        % actions == 3 corresponds to choosing bad bandit
+
+        % outcomes == 1 corresponds to a positive outcome
+        % outcomes == 2 corresponds to a neutral outcome
+        % outcomes == 3 corresponds to a negative outcome
+                         
+
         actions(t) = choices(t);
         outcomes(t) = rewards(t);
         
@@ -108,29 +118,40 @@ for t = 1:T
             %number_of_times_chosen(actions(t),t+1) = number_of_times_chosen(actions(t),t)+1;
             
             % only update expected value
+            % Positive outcome use reward sensitivity param
             if outcomes(t) == 1
                 outcome_trans = 1*params.cr;
+            % Neutral outcome
             elseif outcomes(t) == 2
                 outcome_trans = 0; % transform neutral outcome to 0
+            % Negative outcome use loss aversion param
             elseif outcomes(t) == 3
                 outcome_trans = -1*params.cl; % transform loss outcome to -1
             end
             prediction_error = outcome_trans - expected_value(actions(t), t);
             
             % update mean of the chosen option
+            % First determine if learning rate will differ for each
+            % observation
             if isfield(params, 'alpha_win')
+                % Positive outcome
                 if outcomes(t) == 1
                     expected_value(actions(t), t+1) = expected_value(actions(t), t) + params.alpha_win*prediction_error;
+                % Neutral outcome
                 elseif outcomes(t) == 2
                     expected_value(actions(t), t+1) = expected_value(actions(t), t) + params.alpha_neutral*prediction_error;
+                % Negative outcome
                 elseif outcomes(t) == 3
                     expected_value(actions(t), t+1) = expected_value(actions(t), t) + params.alpha_loss*prediction_error;
                 end
             else
                 expected_value(actions(t), t+1) = expected_value(actions(t), t) + params.alpha*prediction_error;
             end
-            % forgetting for unchosen options
+            % forgetting for unchosen options (forget back to initial
+            % value)
             unchose_opt_ls = find([1 2 3] ~= actions(t));
+            % First determine if using different forgetting rates depending
+            % on observation
             if isfield(params, 'psi_win')
                 if outcomes(t) == 1
                     expected_value(unchose_opt_ls, t+1) = (1-params.psi_win)*(expected_value(unchose_opt_ls, t)-expected_value(unchose_opt_ls, 1)) + expected_value(unchose_opt_ls, 1);

@@ -14,7 +14,21 @@ if ispc
     % Modify the names within DCM.field to chose what parameters are going
     % to be fit
     DCM.field = {'beta_0','c','cl','cr','V0','alpha_win','alpha_neutral','alpha_loss','psi','gamma'};
-    
+    % Parameter descriptions:
+    % beta = inverse temperature; it may change over time, in which case beta_0 is
+    % final value of inverse temperature and c determines the rate of
+    % change.
+    % c = time power constant for dynamic softmax. Positive values of c
+    % lead to inverse temperature values that increase over time, while negative values
+    % entail inverse temperature values that decrease.
+    % cl = loss aversion
+    % cr = reward sensitivity
+    % V0 = initial value of options
+    % alpha = learning rate (may be different for each outcome)
+    % psi = forgetting rate (may be different for each outcome)
+    % gamma = information bonus
+    % eta = determines how quickly the associability weight changes
+
     experiment_mode = "prolific";
     if experiment_mode == "local"
         fit_list = ["BW521"];
