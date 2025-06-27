@@ -201,7 +201,7 @@ for t = 1:params.T
         
         if params.dynamic_decision_noise
             outcome_t = zeros(3, 1);
-            outcome_t(rewards(t)) = 1;
+            outcome_t(outcomes(t)) = 1; 
             F(:, t) = -log(A{t}'*outcome_t);
             pi_post= exp(beta_vec(t)*-G(:,t) - F(:, t))/sum(exp(beta_vec(t)*-G(:,t)- F(:, t)));
             G_error(t) = (pi_post - pi_0)'* G(:,t);
