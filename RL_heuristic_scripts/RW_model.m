@@ -272,9 +272,9 @@ for t = 1:T
                     if rewards(t) == 1
                         expected_value(choice_at_t, t+1) = expected_value(choice_at_t, t) + params.alpha_win*prediction_error;
                     elseif rewards(t) == 2
-                        expected_value(choice_at_t, t+1) = expected_value(choice_at_t, t) + params.alpha_loss*prediction_error;
-                    elseif rewards(t) == 3
                         expected_value(choice_at_t, t+1) = expected_value(choice_at_t, t) + params.alpha_neutral*prediction_error;
+                    elseif rewards(t) == 3
+                        expected_value(choice_at_t, t+1) = expected_value(choice_at_t, t) + params.alpha_loss*prediction_error;
                     end
                 else
                     expected_value(choice_at_t, t+1) = expected_value(choice_at_t, t) + params.alpha*prediction_error;
@@ -309,11 +309,11 @@ for t = 1:T
                 
                 % update mean of the chosen option
                 if isfield(params, 'alpha_win')
-                    if rewards(t) == 1
+                    if sim_rewards(t) == 1
                         expected_value(choice_at_t, t+1) = expected_value(choice_at_t, t) + params.alpha_win*prediction_error;
-                    elseif rewards(t) == 2
+                    elseif sim_rewards(t) == 2
                         expected_value(choice_at_t, t+1) = expected_value(choice_at_t, t) + params.alpha_neutral*prediction_error;
-                    elseif rewards(t) == 3
+                    elseif sim_rewards(t) == 3
                         expected_value(choice_at_t, t+1) = expected_value(choice_at_t, t) + params.alpha_loss*prediction_error;
                     end
                 else
@@ -324,11 +324,11 @@ for t = 1:T
                 unchose_opt_ls = find([1 2 3] ~= choice_at_t);
                 
                 if isfield(params, 'psi_win')
-                    if rewards(t) == 1
+                    if sim_rewards(t) == 1
                         expected_value(unchose_opt_ls, t+1) = (1-params.psi_win)*(expected_value(unchose_opt_ls, t)-expected_value(unchose_opt_ls, 1)) + expected_value(unchose_opt_ls, 1);
-                    elseif rewards(t) == 2
+                    elseif sim_rewards(t) == 2
                         expected_value(unchose_opt_ls, t+1) = (1-params.psi_neutral)*(expected_value(unchose_opt_ls, t)-expected_value(unchose_opt_ls, 1)) + expected_value(unchose_opt_ls, 1);
-                    elseif rewards(t) == 3
+                    elseif sim_rewards(t) == 3
                         expected_value(unchose_opt_ls, t+1) = (1-params.psi_loss)*(expected_value(unchose_opt_ls, t)-expected_value(unchose_opt_ls, 1)) + expected_value(unchose_opt_ls, 1);
                     end
                 elseif isfield(params, 'psi')
