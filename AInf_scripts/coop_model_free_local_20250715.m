@@ -1,7 +1,6 @@
-function mf_results = coop_model_free_local_20250701(file)
-%coop_model_free_local_20250701('L:/rsmith/wellbeing/data/raw/sub-BS166/BS166-T1-_COP_R1-_BEH.csv')
-        subdat = readtable(file);
+function mf_results = coop_model_free_local_20250715(file)
 
+        subdat = readtable(file);
 
         %==========================================================================
         %==========================================================================

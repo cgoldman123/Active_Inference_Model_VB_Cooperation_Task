@@ -180,7 +180,7 @@ if SIM_PASSED_PARAMETERS
 
  
     if SIMFIT
-        simmed_results = TAB_simfit_simple_prolific(fit_results);
+        simmed_results = TAB_simfit_simple(fit_results);
         % assemble output table
         sim_post_fields = fieldnames(simmed_results.prior);
         sim_post_values = struct2cell(simmed_results.parameters);
@@ -193,7 +193,11 @@ if SIM_PASSED_PARAMETERS
     
    
     if DO_MODEL_FREE
-        mf_results = coop_model_free_20250521(file);
+        if strcmp(experiment_mode, "prolific")
+            mf_results = coop_model_free_20250521(file);
+        elseif strcmp(experiement_mode, "local")
+            mf_results = coop_model_free_local_20250701(file);
+        end
         result_table = [result_table, struct2table(mf_results)];
     end
     

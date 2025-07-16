@@ -7,7 +7,7 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         root = '/media/labs/';
     end
     file_path = [root 'rsmith/wellbeing/data/raw/'];
-    file_path_subject = [file_path 'sub-' char(subject) '/'];
+    file_path_subject = [file_path 'sub-' char(subject) '/']
     
     
     has_practice_effects = false;
@@ -37,8 +37,6 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
             first_game_trial = min(find(ismember(subdat.trial_type, 'MAIN_START'))) +3;
             clean_subdat = subdat(first_game_trial:end, :);
             % make sure correct number of trials
-            % note that event_type ==5 should always be 480 but sometimes
-            % event_type ==4 will be 479
             if (length(clean_subdat.result(clean_subdat.event_code == 5)) ~= 352) || (length(clean_subdat.response(clean_subdat.event_code == 5)) ~= 352)
                 has_practice_effects = true;
                 continue;
@@ -69,7 +67,8 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         location_map = containers.Map({'g', 's', 'b'}, [2, 3, 4]);
         force_choice_map = containers.Map({'g', 's', 'b'}, [1, 2, 3]);
         force_outcome_map = containers.Map({'W', 'N', 'L'}, [1, 2, 3]);
-        %schedule = readtable([root 'rsmith/lab-members/osanchez/wellbeing/cooperation/task_schedule/in_person_22_block_schedule']);
+        %schedule = readtable([root 'rsmith/lab-members/osanchez/wellbeing/cooperation/task_schedule/prolific_30_block_schedule.xlsx']);
+
         %Creating Schedule
         split_cells = cellfun(@(x) split(x, ' '), trial_types_unique, 'UniformOutput', false);
         game_type = cellfun(@(x) x(1), split_cells);
@@ -213,18 +212,19 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         mdp = DCM.MDP;
         field = fieldnames(DCM.M.pE);
         for i = 1:length(field)
-            if ismember(field{i},{'beta','beta_0','cr','cl'})
+            if ismember(field{i},{'alpha', 'beta', 'cs', 'p_a', 'cr', 'cl','beta_0','alpha_d'})
                 prior.(field{i}) = exp(DCM.M.pE.(field{i}));
                 mdp.(field{i}) = exp(DCM.Ep.(field{i}));
-            elseif ismember(field{i},{'alpha','alpha_win','alpha_loss','alpha_neutral', ...
-                'psi','psi_win','psi_loss','psi_neutral','eta'})
+            elseif ismember(field{i},{'eta_win', 'eta_loss', 'eta_neutral', 'eta'})
+                prior.(field{i}) = exp(DCM.M.pE.(field{i}));
+                mdp.(field{i}) = exp(DCM.Ep.(field{i}));
+            elseif ismember(field{i},{'omega', 'omega_win', 'omega_loss','omega_neutral', 'opt','psi_0','psi_r'})
                 prior.(field{i}) = 1/(1+exp(-DCM.M.pE.(field{i})));
                 mdp.(field{i}) = 1/(1+exp(-DCM.Ep.(field{i})));  
-            elseif ismember(field{i}, {'c','V0','gamma'})
-                prior.(field{i}) = DCM.M.pE.(field{i});
-                mdp.(field{i}) = DCM.Ep.(field{i});
             else
                error("variable not transformed")
+%                 prior.(field{i}) = (DCM.M.pE.(field{i}));
+%                 mdp.(field{i}) = (DCM.Ep.(field{i}));
             end
         end
 
@@ -237,14 +237,7 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         Y_Block = DCM.Y{:}-1;
         choices = reshape(Y_Block,T,NB)';        
 
-%              %if splitting learning(forgetting) rates
-%                   params.omega_win = 1;
-%                   params.omega_loss = 1;
-        
-        %     %if splitting learning rates
-%                  params.eta_win = .5;
-%                  params.eta_loss = .5;
-        %         
+
         % %Simulate beliefs using fitted values
         for block=1:NB
            % mdp.force_choice = params.force_choice(block,:);
@@ -252,13 +245,13 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
 %             mdp.BlockProbs = block_probs(:,:,block);
 %             mdp.force_choice = DCM.MDP.force_choice(block,:);
 %             mdp.force_outcome = DCM.MDP.force_outcome(block,:);
-            MDP_Block{block} = RW_model(mdp, rewards(block,:), choices(block,:), 0);
+            MDP_Block{block} = Simple_TAB_model_v3(mdp, rewards(block,:), choices(block,:), 0);
             % get avg action prob for free choices
-            avg_act_probs(block) = sum(MDP_Block{block}.action_probabilities(4:end))/(mdp.T-3);
-            
+            avg_act_probs(block) = sum(MDP_Block{block}.chosen_action_probabilities(4:end))/(mdp.T-3);
+
             for trial = 4:T
-                chosen_act_prob = round(MDP_Block{block}.action_probabilities(trial),3);
-                avg_act_prob = round(MDP_Block{block}.P(:,trial),3);
+                chosen_act_prob = round(MDP_Block{block}.chosen_action_probabilities(trial),3);
+                avg_act_prob = round(MDP_Block{block}.action_probabilities(:,trial),3);
                 
                 % if 3 options have the same maximum act prob
                 if chosen_act_prob == max(avg_act_prob) & length(find(chosen_act_prob == avg_act_prob)) == 3
@@ -273,8 +266,6 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
                     acc(block,trial-3) = 0;
                 end
             end
-            
-            
         end
 
         
@@ -299,18 +290,19 @@ function [fit_results,file] = TAB_fit_simple_local(subject,DCM)
         for i = 1:length(fieldnames(DCM.MDP))
             if contains(fieldnames_DCM{i}, {'forgetting_split','learning_split',...
             'T', 'NB', 'force_choice','force_outcome', 'BlockProbs', 'forgetting_split_row','forgetting_split_matrix',...
-            'assoc','softmax'})
+            'dynamic_forgetting','dynamic_decision_noise'})
+            elseif contains(fieldnames_DCM{i}, {'psi_r'})
+                if DCM.MDP.dynamic_forgetting == 1
+                end
+            elseif contains(fieldnames_DCM{i}, {'omega'})
+                if DCM.MDP.dynamic_forgetting == 0
+                end
             else
                 if ~contains(fieldnames_DCM{i}, fit_results.param_names)
                     fit_results.fixed.(fieldnames_DCM{i}) = DCM.MDP.(fieldnames_DCM{i});
                 end
             end
         end
-      
-        break;
-        
-        
+        break; 
     end
-        
-
 end
