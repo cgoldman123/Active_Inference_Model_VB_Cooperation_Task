@@ -1,5 +1,5 @@
         
-function sim_results = TAB_simfit_simple_prolific(fit_results)
+function sim_results = TAB_simfit_simple(fit_results)
         params = fit_results.DCM.MDP;
         fit_results.DCM = rmfield(fit_results.DCM, {'M','Ep','Cp','F'});
         rewards = fit_results.DCM.U{:}-1;

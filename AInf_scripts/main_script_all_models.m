@@ -20,9 +20,9 @@ if ispc
     DCM.MDP.forgetting_split_row = 0; % Separate forgetting rate, rows
     DCM.MDP.learning_split = 1; % 1 = separate wins/losses/neutral, 0 = not
 
-    experiment_mode = "prolific";
+    experiment_mode = "local";
     if experiment_mode == "local"
-        fit_list = ["BW521"];
+        fit_list = ["BS166"];
     elseif experiment_mode == "prolific"
         fit_list = ["55eb04337480920010aa9e0d"];
     end
@@ -179,7 +179,11 @@ for subject = fit_list
     
    
     if DO_MODEL_FREE
-        mf_results = coop_model_free_20250521(file);
+        if strcmp(experiment_mode, "prolific")
+            mf_results = coop_model_free_20250521(file);
+        elseif strcmp(experiment_mode, "local")
+            mf_results = coop_model_free_local_20250715(file);
+        end
         result_table = [result_table, struct2table(mf_results)];
     end
     
